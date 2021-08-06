@@ -1,4 +1,5 @@
 from flask import Flask, request, abort
+from functools import wraps
 
 def get_token_auth_header():
     if 'Authorization' not in request.headers:
@@ -14,11 +15,18 @@ def get_token_auth_header():
 
     return header_parts[1]
 
+def requires_auth(f):
+    @wraps(f)
+    def wrapper(*arges, **kwargs):
+        jwt = get_token_auth_header()
+        return f(jwt, *arges, **kwargs)
+    return wrapper
+
 app = Flask(__name__)
 
 @app.route('/headers')
-def headers():
+@requires_auth
+def headers(jwt):
     # @TODO unpack the request header
-    jwt = get_token_auth_header()
     print(jwt)
     return 'not umplemented'
